@@ -396,6 +396,8 @@ window.doLogout=()=>{
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-login').classList.add('active');
   document.getElementById('inp-pass').value='';
+  const btn=document.getElementById('btn-login');
+  btn.disabled=false; btn.textContent='Entrar →';
 };
 
 async function ensureMonth(u){
