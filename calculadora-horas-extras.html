@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Horas Extras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0f0f;
+    --paper: #f5f0e8;
+    --cream: #ede8dc;
+    --accent: #c94f2c;
+    --accent2: #2c6fc9;
+    --muted: #7a7468;
+    --border: #d4cfc4;
+    --success: #1a7a4a;
+    --card-bg: #ffffff;
+    --shadow: 0 2px 0 #d4cfc4, 0 4px 20px rgba(0,0,0,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(201,79,44,0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(44,111,201,0.04) 0%, transparent 50%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 16px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 36px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  header .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(28px, 6vw, 42px);
+    color: var(--ink);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  header h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  header p {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 300;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 480px;
+    padding: 28px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+    margin-top: 24px;
+  }
+
+  .section-label:first-child { margin-top: 0; }
+
+  .field { margin-bottom: 14px; }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .field label .hint {
+    font-weight: 300;
+    color: var(--muted);
+    font-size: 12px;
+    margin-left: 4px;
+  }
+
+  .input-wrap { position: relative; }
+
+  .input-wrap .prefix {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  input[type="number"],
+  input[type="month"] {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--ink);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  input[type="number"]:focus,
+  input[type="month"]:focus {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 3px rgba(44,111,201,0.1);
+  }
+
+  .input-wrap.with-prefix input { padding-left: 32px; }
+
+  .row { display: flex; gap: 10px; }
+  .row .field { flex: 1; }
+
+  /* Read-only calendar fields */
+  .cal-field input {
+    background: var(--cream);
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--accent2);
+    cursor: default;
+  }
+
+  /* Holiday tags */
+  #holiday-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+    min-height: 24px;
+  }
+
+  .h-tag {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: popIn 0.2s ease;
+  }
+
+  .h-tag button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: var(--accent);
+    font-size: 14px;
+    line-height: 1;
+    width: auto;
+    margin: 0;
+  }
+
+  .add-holiday {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .add-holiday input[type="date"] {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .add-holiday input[type="date"]:focus { border-color: var(--accent2); border-style: solid; }
+
+  .btn-add {
+    padding: 8px 14px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--ink);
+    transition: background 0.15s;
+    width: auto;
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .btn-add:hover { background: var(--border); }
+
+  /* Jornada selector */
+  .jornada-btns {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+  }
+
+  .j-btn {
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    cursor: pointer;
+    background: #fff;
+    color: var(--muted);
+    transition: all 0.15s;
+    width: auto;
+    margin: 0;
+  }
+
+  .j-btn.active {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+
+  /* Calculate button */
+  .btn-calc {
+    width: 100%;
+    margin-top: 24px;
+    padding: 16px;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.1s;
+  }
+
+  .btn-calc:hover { transform: translateY(-1px); }
+  .btn-calc:active { transform: translateY(0); }
+
+  .btn-calc::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* Result card */
+  .result-card {
+    width: 100%;
+    max-width: 480px;
+    margin-top: 16px;
+    background: var(--ink);
+    border-radius: 16px;
+    padding: 28px;
+    display: none;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .result-card.visible { display: block; }
+
+  .result-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 20px;
+  }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .result-row:last-of-type { border-bottom: none; margin-bottom: 0; }
+
+  .result-row .r-label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    font-weight: 300;
+  }
+
+  .result-row .r-label .r-detail {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,0.3);
+    margin-top: 2px;
+  }
+
+  .result-row .r-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    color: rgba(255,255,255,0.85);
+  }
+
+  .result-total {
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .result-total .rt-label {
+    font-family: 'DM Serif Display', serif;
+    font-size: 16px;
+    color: rgba(255,255,255,0.7);
+  }
+
+  .result-total .rt-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    color: #6ee7a0;
+    letter-spacing: -0.01em;
+  }
+
+  /* Error state */
+  .err-msg {
+    font-size: 12px;
+    color: var(--accent);
+    margin-top: 4px;
+    display: none;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .field.has-error input { border-color: var(--accent); }
+  .field.has-error .err-msg { display: block; }
+
+  /* Loading state */
+  .loading-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .spinner {
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent2);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  footer {
+    margin-top: 28px;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    line-height: 1.7;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Trabalhista · CLT</div>
+  <h1>Horas <em>Extras</em></h1>
+  <p>Cálculo com DSR, feriados nacionais e reflexos</p>
+</header>
+
+<div class="card">
+
+  <!-- VALOR DA HORA -->
+  <div class="section-label">Remuneração</div>
+
+  <div class="field" id="field-hora">
+    <label>Valor da hora normal <span class="hint">salário ÷ horas mensais</span></label>
+    <div class="input-wrap with-prefix">
+      <span class="prefix">R$</span>
+      <input type="number" id="valorHora" step="0.01" min="0.01" placeholder="15,00">
+    </div>
+    <div class="err-msg">Informe o valor da hora.</div>
+  </div>
+
+  <!-- JORNADA -->
+  <div class="field">
+    <label>Jornada semanal <span class="hint">dias trabalhados</span></label>
+    <div class="jornada-btns">
+      <button class="j-btn active" data-days="6" onclick="setJornada(this)">Seg–Sáb</button>
+      <button class="j-btn" data-days="5" onclick="setJornada(this)">Seg–Sex</button>
+    </div>
+  </div>
+
+  <!-- CALENDÁRIO -->
+  <div class="section-label">Calendário</div>
+
+  <div class="field" id="field-mes">
+    <label>Mês de referência</label>
+    <input type="month" id="mesReferencia" onchange="onMesChange()">
+    <div class="err-msg">Selecione o mês.</div>
+    <div id="loading-badge" class="loading-badge" style="display:none">
+      <div class="spinner"></div> Buscando feriados…
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="field cal-field">
+      <label>Dias úteis</label>
+      <div class="input-wrap">
+        <input type="number" id="diasUteis" readonly tabindex="-1">
+      </div>
+    </div>
+    <div class="field cal-field">
+      <label>Dom + Feriados</label>
+      <div class="input-wrap">
+        <input type="number" id="domFer" readonly tabindex="-1">
+      </div>
+    </div>
+  </div>
+
+  <!-- Feriados -->
+  <div class="field">
+    <label>Feriados detectados <span class="hint">clique × para remover ou adicione abaixo</span></label>
+    <div id="holiday-list"></div>
+    <div class="add-holiday">
+      <input type="date" id="addHolDate" placeholder="dd/mm/aaaa">
+      <button class="btn-add" onclick="addHoliday()">+ Adicionar</button>
+    </div>
+  </div>
+
+  <!-- HORAS EXTRAS -->
+  <div class="section-label">Horas Extras Trabalhadas</div>
+
+  <div class="row">
+    <div class="field">
+      <label>50% <span class="hint">dias úteis 1ª h</span></label>
+      <input type="number" id="h50" value="0" min="0" step="0.5">
+    </div>
+    <div class="field">
+      <label>75% <span class="hint">dias úteis 2ª h+</span></label>
+      <input type="number" id="h75" value="0" min="0" step="0.5">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>100% <span class="hint">domingos e feriados</span></label>
+    <input type="number" id="h100" value="0" min="0" step="0.5">
+  </div>
+
+  <button class="btn-calc" onclick="calcular()">Calcular →</button>
+</div>
+
+<!-- RESULTADO -->
+<div class="result-card" id="resultado">
+  <div class="result-eyebrow">Resumo do cálculo</div>
+
+  <div class="result-row">
+    <span class="r-label">Horas a 50%
+      <span class="r-detail" id="det50"></span>
+    </span>
+    <span class="r-value" id="res50">—</span>
+  </div>
+  <div class="result-row">
+    <span class="r-label">Horas a 75%
+      <span class="r-detail" id="det75"></span>
+    </span>
+    <span class="r-value" id="res75">—</span>
+  </div>
+  <div class="result-row">
+    <span class="r-label">Horas a 100%
+      <span class="r-detail" id="det100"></span>
+    </span>
+    <span class="r-value" id="res100">—</span>
+  </div>
+  <div class="result-row">
+    <span class="r-label">Subtotal horas extras</span>
+    <span class="r-value" id="resSubtotal">—</span>
+  </div>
+  <div class="result-row">
+    <span class="r-label">Reflexo DSR
+      <span class="r-detail" id="detDsr"></span>
+    </span>
+    <span class="r-value" id="resDsr">—</span>
+  </div>
+
+  <div class="result-total">
+    <span class="rt-label">Total a Receber</span>
+    <span class="rt-value" id="resTotal">—</span>
+  </div>
+</div>
+
+<footer>
+  Feriados nacionais via BrasilAPI · Fórmula DSR: Súmula 172 TST<br>
+  Reflexo DSR = (total extras ÷ dias úteis) × dom/feriados
+</footer>
+
+<script>
+// ─── State ──────────────────────────────────────────────────────────────────
+let jornada = 6;        // 6 = Seg-Sáb, 5 = Seg-Sex
+let holidays = [];      // Array de "YYYY-MM-DD" strings
+
+// ─── Jornada ─────────────────────────────────────────────────────────────────
+function setJornada(btn) {
+  document.querySelectorAll('.j-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  jornada = parseInt(btn.dataset.days);
+  const mes = document.getElementById('mesReferencia').value;
+  if (mes) recalcCalendario();
+}
+
+// ─── Mês changed ─────────────────────────────────────────────────────────────
+async function onMesChange() {
+  const mes = document.getElementById('mesReferencia').value;
+  if (!mes) return;
+  clearError('field-mes');
+
+  const [ano, m] = mes.split('-').map(Number);
+
+  // Show loading
+  document.getElementById('loading-badge').style.display = 'flex';
+  holidays = [];
+  renderHolidays();
+
+  try {
+    const res = await fetch(`https://brasilapi.com.br/api/feriados/v1/${ano}`);
+    if (res.ok) {
+      const data = await res.json();
+      holidays = data
+        .filter(f => {
+          const d = new Date(f.date + 'T12:00:00');
+          return d.getMonth() + 1 === m;
+        })
+        .map(f => f.date);
+    }
+  } catch (e) {
+    // silently fail — user can add manually
+  }
+
+  document.getElementById('loading-badge').style.display = 'none';
+  renderHolidays();
+  recalcCalendario();
+}
+
+function recalcCalendario() {
+  const mes = document.getElementById('mesReferencia').value;
+  if (!mes) return;
+  const [ano, m] = mes.split('-').map(Number);
+  const ultimoDia = new Date(ano, m, 0).getDate();
+
+  let uteis = 0, domFer = 0;
+  const holidaySet = new Set(holidays);
+
+  for (let d = 1; d <= ultimoDia; d++) {
+    const data = new Date(ano, m - 1, d);
+    const ds = data.getDay();
+    const iso = `${ano}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+    if (ds === 0) {
+      domFer++;
+    } else if (holidaySet.has(iso)) {
+      domFer++;
+    } else if (jornada === 5 && ds === 6) {
+      // Sábado fora da jornada — conta como dia útil para DSR mas não trabalhado
+      // tratamos como "não útil de trabalho" → domFer para DSR
+      domFer++;
+    } else {
+      uteis++;
+    }
+  }
+
+  document.getElementById('diasUteis').value = uteis;
+  document.getElementById('domFer').value = domFer;
+}
+
+// ─── Holiday management ───────────────────────────────────────────────────────
+function renderHolidays() {
+  const list = document.getElementById('holiday-list');
+  list.innerHTML = '';
+  if (holidays.length === 0) {
+    list.innerHTML = '<span style="font-size:12px;color:var(--muted);font-family:DM Mono,monospace">Nenhum feriado no mês</span>';
+    return;
+  }
+  holidays.sort().forEach((iso, i) => {
+    const [y, mo, d] = iso.split('-');
+    const label = `${d}/${mo}`;
+    const tag = document.createElement('div');
+    tag.className = 'h-tag';
+    tag.innerHTML = `${label} <button onclick="removeHoliday(${i})" title="Remover">×</button>`;
+    list.appendChild(tag);
+  });
+}
+
+function removeHoliday(i) {
+  holidays.splice(i, 1);
+  renderHolidays();
+  recalcCalendario();
+}
+
+function addHoliday() {
+  const inp = document.getElementById('addHolDate');
+  const val = inp.value;
+  if (!val) return;
+  if (holidays.includes(val)) { inp.value = ''; return; }
+  holidays.push(val);
+  holidays.sort();
+  inp.value = '';
+  renderHolidays();
+  recalcCalendario();
+}
+
+// ─── Validation helpers ───────────────────────────────────────────────────────
+function setError(fieldId, msg) {
+  const f = document.getElementById(fieldId);
+  f.classList.add('has-error');
+  if (msg) f.querySelector('.err-msg').textContent = msg;
+}
+function clearError(fieldId) {
+  document.getElementById(fieldId).classList.remove('has-error');
+}
+
+// ─── Format currency ──────────────────────────────────────────────────────────
+const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const fmt2 = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// ─── Main calc ────────────────────────────────────────────────────────────────
+function calcular() {
+  let ok = true;
+
+  clearError('field-hora'); clearError('field-mes');
+
+  const vHora = parseFloat(document.getElementById('valorHora').value);
+  if (!vHora || vHora <= 0) { setError('field-hora', 'Informe o valor da hora.'); ok = false; }
+
+  const mes = document.getElementById('mesReferencia').value;
+  if (!mes) { setError('field-mes', 'Selecione o mês de referência.'); ok = false; }
+
+  if (!ok) return;
+
+  const h50  = parseFloat(document.getElementById('h50').value)  || 0;
+  const h75  = parseFloat(document.getElementById('h75').value)  || 0;
+  const h100 = parseFloat(document.getElementById('h100').value) || 0;
+  const diasUteis = parseInt(document.getElementById('diasUteis').value) || 1;
+  const domFer    = parseInt(document.getElementById('domFer').value)    || 0;
+
+  const val50  = h50  * (vHora * 1.50);
+  const val75  = h75  * (vHora * 1.75);
+  const val100 = h100 * (vHora * 2.00);
+  const subtotal = val50 + val75 + val100;
+  const dsr   = diasUteis > 0 ? (subtotal / diasUteis) * domFer : 0;
+  const total = subtotal + dsr;
+
+  // Populate
+  document.getElementById('det50').textContent =
+    h50 > 0 ? `${fmt2(h50)} h × ${brl(vHora * 1.5)}/h` : '';
+  document.getElementById('det75').textContent =
+    h75 > 0 ? `${fmt2(h75)} h × ${brl(vHora * 1.75)}/h` : '';
+  document.getElementById('det100').textContent =
+    h100 > 0 ? `${fmt2(h100)} h × ${brl(vHora * 2)}/h` : '';
+  document.getElementById('detDsr').textContent =
+    `(${brl(subtotal)} ÷ ${diasUteis} dias úteis) × ${domFer} dom/fer`;
+
+  document.getElementById('res50').textContent      = h50  > 0 ? brl(val50)   : '—';
+  document.getElementById('res75').textContent      = h75  > 0 ? brl(val75)   : '—';
+  document.getElementById('res100').textContent     = h100 > 0 ? brl(val100)  : '—';
+  document.getElementById('resSubtotal').textContent = brl(subtotal);
+  document.getElementById('resDsr').textContent     = brl(dsr);
+  document.getElementById('resTotal').textContent   = brl(total);
+
+  const card = document.getElementById('resultado');
+  card.classList.remove('visible');
+  void card.offsetWidth; // reflow for re-animation
+  card.classList.add('visible');
+  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ─── Init: set current month ─────────────────────────────────────────────────
+(function () {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  document.getElementById('mesReferencia').value = `${y}-${m}`;
+  onMesChange();
+})();
+</script>
+</body>
+</html>

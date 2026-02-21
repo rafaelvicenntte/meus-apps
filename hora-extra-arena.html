@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hora Extra Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,600;0,700;1,700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0a0f; --panel:#12121a; --panel2:#1a1a26; --border:#2a2a3d;
+  --accent:#f0c040; --accent2:#e05a20; --text:#e8e8f0; --muted:#5a5a78;
+  --gold:#f0c040; --silver:#a0a8b8; --bronze:#c07840; --green:#40d080; --red:#e04040;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);background-image:radial-gradient(ellipse at 10% 0%,rgba(240,192,64,.07) 0%,transparent 50%),radial-gradient(ellipse at 90% 100%,rgba(224,90,32,.07) 0%,transparent 50%);min-height:100vh;font-family:'Barlow',sans-serif;color:var(--text);display:flex;flex-direction:column;align-items:center;}
+.screen{display:none;width:100%;max-width:520px;padding:20px 16px;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+/* LOGO */
+.logo-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--accent2);margin-bottom:4px;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(48px,12vw,72px);letter-spacing:.04em;line-height:1;background:linear-gradient(135deg,var(--gold),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.logo-sub{font-size:13px;color:var(--muted);letter-spacing:.05em;font-weight:300;margin-top:4px;}
+/* CARD */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;animation:fadeUp .4s .1s ease both;}
+/* FIELD */
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px;}
+.field input,.field select{width:100%;padding:12px 14px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:'Barlow',sans-serif;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;}
+.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(240,192,64,.1);}
+.field input::placeholder{color:var(--muted);}
+.field.has-error input{border-color:var(--red);}
+.field .err{font-size:11px;color:var(--red);margin-top:4px;display:none;font-family:'Barlow Condensed',sans-serif;letter-spacing:.05em;}
+.field.has-error .err{display:block;}
+.field select option{background:var(--panel2);}
+/* BUTTONS */
+.btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold),var(--accent2));color:#0a0a0f;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.08em;cursor:pointer;transition:opacity .15s,transform .1s;margin-top:4px;}
+.btn:hover{opacity:.92;transform:translateY(-1px);}
+.btn:active{transform:translateY(0);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:8px;font-family:'Barlow',sans-serif;font-size:13px;padding:8px 16px;cursor:pointer;width:auto;transition:color .15s,border-color .15s;}
+.btn-ghost:hover{color:var(--text);border-color:var(--muted);}
+.btn-danger{background:transparent;color:var(--red);border:1px solid rgba(224,64,64,.3);border-radius:8px;font-size:12px;padding:6px 12px;cursor:pointer;width:auto;font-family:'Barlow',sans-serif;transition:background .15s;}
+.btn-danger:hover{background:rgba(224,64,64,.1);}
+.btn-warning{background:transparent;color:var(--accent);border:1px solid rgba(240,192,64,.3);border-radius:8px;font-size:12px;padding:6px 12px;cursor:pointer;width:auto;font-family:'Barlow',sans-serif;transition:background .15s;}
+.btn-warning:hover{background:rgba(240,192,64,.08);}
+.link-btn{background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;text-decoration:underline;font-family:'Barlow',sans-serif;padding:0;width:auto;}
+/* TOPBAR */
+.topbar{width:100%;display:flex;justify-content:space-between;align-items:center;padding:16px 0 0;animation:fadeDown .4s ease both;}
+.topbar-user{font-family:'Barlow Condensed',sans-serif;font-size:14px;letter-spacing:.08em;color:var(--muted);}
+.topbar-user strong{color:var(--text);}
+/* MONTH BANNER */
+.month-banner{width:100%;text-align:center;margin:16px 0;animation:dropIn .4s ease both;}
+.month-label{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.2em;color:var(--accent2);text-transform:uppercase;}
+.month-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,7vw,40px);letter-spacing:.06em;color:var(--text);}
+/* MY PANEL */
+.my-panel{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;animation:fadeUp .35s ease both;}
+.my-panel-title{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.my-hours-display{font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:1;color:var(--accent);margin-bottom:4px;}
+.my-hours-label{font-size:12px;color:var(--muted);margin-bottom:16px;}
+.add-form{display:flex;gap:8px;}
+.add-form input{flex:1;padding:10px 12px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:'Barlow',sans-serif;color:var(--text);outline:none;transition:border-color .2s;}
+.add-form input:focus{border-color:var(--accent);}
+.btn-add-h{padding:10px 18px;background:var(--accent);color:#0a0a0f;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.05em;cursor:pointer;width:auto;transition:opacity .15s;}
+.btn-add-h:hover{opacity:.85;}
+/* TABS */
+.tabs{display:flex;gap:2px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:16px;}
+.tab{flex:1;padding:8px;background:transparent;border:none;border-radius:7px;font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);cursor:pointer;transition:background .15s,color .15s;width:auto;}
+.tab.active{background:var(--panel2);color:var(--text);}
+/* LEADERBOARD */
+.leaderboard{width:100%;display:flex;flex-direction:column;gap:10px;}
+.lb-entry{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:16px;animation:fadeUp .3s ease both;position:relative;overflow:hidden;}
+.lb-entry::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--muted);border-radius:3px 0 0 3px;}
+.lb-entry.rank-1::before{background:var(--gold);}
+.lb-entry.rank-2::before{background:var(--silver);}
+.lb-entry.rank-3::before{background:var(--bronze);}
+.lb-entry.is-me{border-color:rgba(240,192,64,.3);background:rgba(240,192,64,.04);}
+.lb-rank{font-family:'Bebas Neue',sans-serif;font-size:28px;min-width:36px;text-align:center;line-height:1;}
+.rank-1 .lb-rank{color:var(--gold);}
+.rank-2 .lb-rank{color:var(--silver);}
+.rank-3 .lb-rank{color:var(--bronze);}
+.lb-info{flex:1;}
+.lb-name{font-weight:700;font-size:16px;line-height:1.1;display:flex;align-items:center;gap:8px;}
+.me-badge{font-size:10px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.1em;background:var(--accent);color:#0a0a0f;padding:1px 6px;border-radius:10px;font-weight:600;}
+.lb-updated{font-size:11px;color:var(--muted);margin-top:2px;}
+.lb-hours{text-align:right;}
+.lb-h-num{font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1;color:var(--text);}
+.rank-1 .lb-h-num{color:var(--gold);}
+.lb-h-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.lb-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.8;}
+/* HISTORY */
+.hist-list{width:100%;display:flex;flex-direction:column;gap:8px;}
+.hist-item{display:flex;justify-content:space-between;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;animation:fadeUp .2s ease both;}
+.hist-item .h-date{color:var(--muted);font-family:'Barlow Condensed',sans-serif;letter-spacing:.05em;}
+.hist-item .h-note{font-size:10px;color:var(--muted);margin-top:2px;}
+.h-val{font-family:'Bebas Neue',sans-serif;font-size:18px;}
+.h-val.positive{color:var(--green);}
+.h-val.negative{color:var(--red);}
+/* ADMIN */
+.admin-section-title{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px;font-family:'Barlow Condensed',sans-serif;}
+.admin-list{width:100%;display:flex;flex-direction:column;gap:8px;}
+.admin-row{display:flex;justify-content:space-between;align-items:center;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+.admin-row-info{font-size:14px;font-weight:600;}
+.admin-row-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.admin-actions{display:flex;gap:6px;align-items:center;}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;animation:fadeIn .2s ease;}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;max-width:380px;animation:fadeUp .2s ease;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--accent);margin-bottom:20px;}
+.modal-actions{display:flex;gap:8px;margin-top:20px;}
+.modal-actions .btn{margin:0;font-size:16px;padding:12px;}
+/* AUDIT */
+.audit-item{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:12px;}
+.audit-item .a-header{display:flex;justify-content:space-between;margin-bottom:4px;}
+.audit-item .a-who{font-weight:600;color:var(--accent);}
+.audit-item .a-when{color:var(--muted);font-family:'Barlow Condensed',sans-serif;}
+/* LOADING */
+.loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px;}
+.spinner-big{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+.loading-text{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);}
+/* LIVE DOT */
+.live-dot{display:inline-block;width:6px;height:6px;background:var(--green);border-radius:50%;margin-right:5px;animation:pulse 1.5s infinite;vertical-align:middle;}
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:10px 20px;font-size:14px;color:var(--text);opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:999;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast.good{border-color:var(--green);color:var(--green);}
+#toast.bad{border-color:var(--red);color:var(--red);}
+#toast.warn{border-color:var(--accent);color:var(--accent);}
+/* ANIMATIONS */
+@keyframes dropIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loading-screen">
+  <div class="spinner-big"></div>
+  <div class="loading-text">Conectando ao Firebase…</div>
+</div>
+
+<!-- ══ LOGIN ══ -->
+<div class="screen" id="screen-login">
+  <div style="width:100%;max-width:400px;padding:40px 0 20px;">
+    <div style="text-align:center;margin-bottom:28px;animation:dropIn .5s ease both;">
+      <div class="logo-eyebrow">Competição Interna · CLT</div>
+      <div class="logo">Hora Extra<br>Arena</div>
+      <div class="logo-sub">Quem trabalha mais, lidera o ranking.</div>
+    </div>
+    <div class="card">
+      <div id="login-form">
+        <div class="field" id="f-user">
+          <label>Usuário</label>
+          <input type="text" id="inp-user" placeholder="seu_usuario" autocomplete="username">
+          <div class="err" id="err-user">Usuário não encontrado.</div>
+        </div>
+        <div class="field" id="f-pass">
+          <label>Senha</label>
+          <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password">
+          <div class="err">Senha incorreta.</div>
+        </div>
+        <button class="btn" id="btn-login" onclick="doLogin()">Entrar →</button>
+        <div style="text-align:center;margin-top:16px;">
+          <button class="link-btn" onclick="showRegister()">Criar nova conta</button>
+        </div>
+      </div>
+      <div id="register-form" style="display:none">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;margin-bottom:16px;color:var(--accent)">Nova Conta</div>
+        <div class="field" id="f-reg-user">
+          <label>Usuário</label>
+          <input type="text" id="inp-reg-user" placeholder="ex: joao_silva" maxlength="20">
+          <div class="err" id="err-reg-user">Usuário já existe ou inválido.</div>
+        </div>
+        <div class="field" id="f-reg-pass">
+          <label>Senha <span style="font-weight:300;color:var(--muted)">(mín. 4 caracteres)</span></label>
+          <input type="password" id="inp-reg-pass" placeholder="••••••••">
+          <div class="err">Senha muito curta.</div>
+        </div>
+        <div class="field" id="f-reg-pass2">
+          <label>Confirme a senha</label>
+          <input type="password" id="inp-reg-pass2" placeholder="••••••••">
+          <div class="err">As senhas não coincidem.</div>
+        </div>
+        <button class="btn" onclick="doRegister()">Criar Conta →</button>
+        <div style="text-align:center;margin-top:16px;">
+          <button class="link-btn" onclick="showLogin()">← Voltar</button>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.05em;">
+      Admin: <strong style="color:var(--muted)">admin</strong> / <strong style="color:var(--muted)">admin123</strong> — troque após entrar
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP (usuário normal) ══ -->
+<div class="screen" id="screen-app">
+  <div class="topbar">
+    <div class="topbar-user"><span class="live-dot"></span>Olá, <strong id="topbar-name"></strong></div>
+    <button class="btn-ghost" onclick="doLogout()">Sair</button>
+  </div>
+  <div class="month-banner">
+    <div class="month-label">Competição —</div>
+    <div class="month-name" id="month-name-display"></div>
+  </div>
+  <div class="my-panel">
+    <div class="my-panel-title">Minhas Horas Extras</div>
+    <div class="my-hours-display" id="my-hours-display">0,0h</div>
+    <div class="my-hours-label">no mês atual</div>
+    <div class="add-form">
+      <input type="number" id="inp-add-hours" placeholder="horas hoje" min="0.5" max="24" step="0.5">
+      <button class="btn-add-h" onclick="addHours()">+ ADD</button>
+    </div>
+  </div>
+  <div class="tabs" style="width:100%">
+    <button class="tab active" onclick="switchTab('ranking',this)">🏆 Ranking</button>
+    <button class="tab" onclick="switchTab('historico',this)">📋 Histórico</button>
+  </div>
+  <div id="tab-ranking" style="width:100%"><div class="leaderboard" id="leaderboard"></div></div>
+  <div id="tab-historico" style="display:none;width:100%"><div class="hist-list" id="hist-list"></div></div>
+</div>
+
+<!-- ══ ADMIN ══ -->
+<div class="screen" id="screen-admin">
+  <div class="topbar">
+    <div class="topbar-user">👑 <strong id="topbar-admin-name"></strong></div>
+    <button class="btn-ghost" onclick="doLogout()">Sair</button>
+  </div>
+  <div style="width:100%;margin:16px 0 8px;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--accent);letter-spacing:.05em;">Painel Admin</div>
+    <div style="font-size:13px;color:var(--muted);">Você não aparece no ranking dos usuários.</div>
+  </div>
+  <div class="tabs" style="width:100%">
+    <button class="tab active" onclick="switchAdminTab('usuarios',this)">👥 Usuários</button>
+    <button class="tab" onclick="switchAdminTab('auditoria',this)">🔍 Auditoria</button>
+    <button class="tab" onclick="switchAdminTab('config',this)">⚙️ Config</button>
+  </div>
+  <!-- Tab usuários -->
+  <div id="admin-tab-usuarios" style="width:100%">
+    <div class="card">
+      <div class="admin-section-title">Ranking · <span id="admin-month-label"></span></div>
+      <div class="admin-list" id="admin-user-list"></div>
+    </div>
+  </div>
+  <!-- Tab auditoria -->
+  <div id="admin-tab-auditoria" style="display:none;width:100%">
+    <div class="card">
+      <div class="admin-section-title">Log de Alterações Manuais</div>
+      <div id="audit-log-list"><div class="lb-empty">Nenhuma alteração registrada.</div></div>
+    </div>
+  </div>
+  <!-- Tab config -->
+  <div id="admin-tab-config" style="display:none;width:100%">
+    <div class="card" style="margin-bottom:14px;">
+      <div class="admin-section-title">Ações Perigosas</div>
+      <button class="btn-danger" style="width:100%;padding:12px;" onclick="confirmReset()">⚠️ Zerar horas de todos agora</button>
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px;">Reset automático no dia 1º de cada mês.</div>
+    </div>
+    <div class="card">
+      <div class="admin-section-title">Alterar minha senha</div>
+      <div class="field" style="margin-bottom:12px;">
+        <label>Nova senha</label>
+        <input type="password" id="inp-admin-newpass" placeholder="mínimo 4 caracteres">
+      </div>
+      <button class="btn" style="font-size:16px;padding:12px;" onclick="changeAdminPass()">Salvar Nova Senha</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL editar horas -->
+<div class="modal-overlay" id="modal-edit" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-title">✏️ Editar Horas</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:20px;">
+      Usuário: <strong id="modal-username" style="color:var(--text)"></strong><br>
+      Total atual: <strong id="modal-current" style="color:var(--accent)"></strong>
+    </div>
+    <div class="field">
+      <label>Operação</label>
+      <select id="modal-op">
+        <option value="set">Definir total exato</option>
+        <option value="add">Adicionar horas</option>
+        <option value="sub">Remover horas</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Horas</label>
+      <input type="number" id="modal-hours" placeholder="ex: 4.5" min="0" step="0.5">
+    </div>
+    <div class="field">
+      <label>Motivo <span style="font-weight:300;color:var(--muted)">(aparece na auditoria)</span></label>
+      <input type="text" id="modal-reason" placeholder="ex: correção de lançamento errado">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()" style="flex:1;padding:12px;">Cancelar</button>
+      <button class="btn" style="flex:2;" onclick="applyEdit()">Confirmar →</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot,
+  collection, addDoc, query, orderBy, getDocs, deleteDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBrEgCsIHWAiBif_eXwKIep1ZoSf05ve78",
+  authDomain: "hora-extra-arena.firebaseapp.com",
+  projectId: "hora-extra-arena",
+  storageBucket: "hora-extra-arena.firebasestorage.app",
+  messagingSenderId: "800564261847",
+  appId: "1:800564261847:web:739665252659dadb211192"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ── Helpers ─────────────────────────────────────────────────────────
+const monthKey = () => {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
+};
+const monthLabel = k => {
+  const [y,m] = k.split('-');
+  return new Date(+y,+m-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'})
+    .replace(/^\w/,c=>c.toUpperCase());
+};
+const fmtH = n => (Math.round((n||0)*100)/100).toFixed(1).replace('.',',')+'h';
+
+let session = null;
+let unsubLb  = null;
+
+// ── Boot: garante admin no Firestore ────────────────────────────────
+try {
+  const aSnap = await getDoc(doc(db,'users','admin'));
+  if (!aSnap.exists())
+    await setDoc(doc(db,'users','admin'),{pass:'admin123',isAdmin:true,createdAt:serverTimestamp()});
+} catch(e){ console.warn(e); }
+
+document.getElementById('loading-screen').style.display='none';
+document.getElementById('screen-login').classList.add('active');
+
+// ── Auth ─────────────────────────────────────────────────────────────
+window.showRegister=()=>{ document.getElementById('login-form').style.display='none'; document.getElementById('register-form').style.display='block'; };
+window.showLogin=()=>{ document.getElementById('register-form').style.display='none'; document.getElementById('login-form').style.display='block'; };
+
+window.doLogin = async () => {
+  const user = document.getElementById('inp-user').value.trim().toLowerCase();
+  const pass = document.getElementById('inp-pass').value;
+  fErr('f-user',false); fErr('f-pass',false);
+  if(!user){ fErr('f-user',true); document.getElementById('err-user').textContent='Informe o usuário.'; return; }
+
+  const btn=document.getElementById('btn-login');
+  btn.disabled=true; btn.textContent='Entrando…';
+  try {
+    const snap=await getDoc(doc(db,'users',user));
+    if(!snap.exists()){ fErr('f-user',true); document.getElementById('err-user').textContent='Usuário não encontrado.'; btn.disabled=false; btn.textContent='Entrar →'; return; }
+    if(snap.data().pass!==pass){ fErr('f-pass',true); btn.disabled=false; btn.textContent='Entrar →'; return; }
+    session={username:user,isAdmin:!!snap.data().isAdmin};
+    await ensureMonth(user);
+    enterApp();
+  } catch(e){ toast('Erro de conexão.','bad'); btn.disabled=false; btn.textContent='Entrar →'; }
+};
+
+window.doRegister = async () => {
+  const user=document.getElementById('inp-reg-user').value.trim().toLowerCase().replace(/\s+/g,'_');
+  const pass=document.getElementById('inp-reg-pass').value;
+  const p2=document.getElementById('inp-reg-pass2').value;
+  fErr('f-reg-user',false); fErr('f-reg-pass',false); fErr('f-reg-pass2',false);
+  let ok=true;
+  if(!user||user.length<2){ fErr('f-reg-user',true); document.getElementById('err-reg-user').textContent='Mínimo 2 caracteres.'; ok=false; }
+  if(!pass||pass.length<4){ fErr('f-reg-pass',true); ok=false; }
+  if(pass!==p2){ fErr('f-reg-pass2',true); ok=false; }
+  if(!ok) return;
+  try {
+    const snap=await getDoc(doc(db,'users',user));
+    if(snap.exists()){ fErr('f-reg-user',true); document.getElementById('err-reg-user').textContent='Usuário já existe.'; return; }
+    await setDoc(doc(db,'users',user),{pass,isAdmin:false,createdAt:serverTimestamp()});
+    await ensureMonth(user);
+    toast('Conta criada! Faça login.','good');
+    ['inp-reg-user','inp-reg-pass','inp-reg-pass2'].forEach(id=>document.getElementById(id).value='');
+    showLogin();
+  } catch(e){ toast('Erro ao criar conta.','bad'); }
+};
+
+window.doLogout=()=>{
+  if(unsubLb){ unsubLb(); unsubLb=null; }
+  session=null;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-login').classList.add('active');
+  document.getElementById('inp-pass').value='';
+};
+
+async function ensureMonth(u){
+  const ref=doc(db,'months',monthKey(),'users',u);
+  const s=await getDoc(ref);
+  if(!s.exists()) await setDoc(ref,{total:0,log:[],updatedAt:serverTimestamp()});
+}
+
+// ── Enter app ─────────────────────────────────────────────────────────
+function enterApp(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  if(session.isAdmin){
+    document.getElementById('topbar-admin-name').textContent=session.username;
+    document.getElementById('admin-month-label').textContent=monthLabel(monthKey());
+    document.getElementById('screen-admin').classList.add('active');
+    loadAdminUsers();
+  } else {
+    document.getElementById('topbar-name').textContent=session.username;
+    document.getElementById('month-name-display').textContent=monthLabel(monthKey());
+    document.getElementById('screen-app').classList.add('active');
+    subscribeLeaderboard();
+  }
+}
+
+// ── Add hours ──────────────────────────────────────────────────────────
+window.addHours = async () => {
+  const h=parseFloat(document.getElementById('inp-add-hours').value);
+  if(!h||h<=0||h>24){ toast('Informe entre 0,5 e 24h.','bad'); return; }
+  const ref=doc(db,'months',monthKey(),'users',session.username);
+  const s=await getDoc(ref);
+  const d=s.data()||{total:0,log:[]};
+  const today=new Date().toLocaleDateString('pt-BR');
+  await updateDoc(ref,{
+    total:Math.round((d.total+h)*100)/100,
+    log:[...(d.log||[]),{date:today,h,type:'user'}],
+    updatedAt:serverTimestamp()
+  });
+  document.getElementById('inp-add-hours').value='';
+  toast(`+${h}h registradas! 💪`,'good');
+};
+
+// ── Leaderboard realtime ───────────────────────────────────────────────
+function subscribeLeaderboard(){
+  const mk=monthKey();
+  if(unsubLb){ unsubLb(); }
+  unsubLb=onSnapshot(collection(db,'months',mk,'users'), async snap=>{
+    const usersSnap=await getDocs(collection(db,'users'));
+    const adminSet=new Set();
+    usersSnap.forEach(d=>{ if(d.data().isAdmin) adminSet.add(d.id); });
+    const entries=[];
+    snap.forEach(d=>{ if(!adminSet.has(d.id)) entries.push({user:d.id,...d.data()}); });
+    entries.sort((a,b)=>b.total-a.total);
+    renderLB(entries);
+    const me=entries.find(e=>e.user===session.username);
+    document.getElementById('my-hours-display').textContent=me?fmtH(me.total):'0,0h';
+  });
+}
+
+function renderLB(entries){
+  const lb=document.getElementById('leaderboard');
+  lb.innerHTML='';
+  if(!entries.length){ lb.innerHTML='<div class="lb-empty">Nenhum dado ainda.<br>Adicione suas horas e lidere! 🔥</div>'; return; }
+  entries.forEach((e,i)=>{
+    const r=i+1,isMe=e.user===session.username;
+    const medal=r===1?'🥇':r===2?'🥈':r===3?'🥉':r;
+    const last=(e.log||[]).slice(-1)[0]?.date||'—';
+    const div=document.createElement('div');
+    div.className=`lb-entry rank-${r}${isMe?' is-me':''}`;
+    div.style.animationDelay=`${i*.05}s`;
+    div.innerHTML=`
+      <div class="lb-rank">${medal}</div>
+      <div class="lb-info">
+        <div class="lb-name">${e.user}${isMe?'<span class="me-badge">VOCÊ</span>':''}</div>
+        <div class="lb-updated">Último: ${last}</div>
+      </div>
+      <div class="lb-hours">
+        <div class="lb-h-num">${fmtH(e.total)}</div>
+        <div class="lb-h-label">extras</div>
+      </div>`;
+    lb.appendChild(div);
+  });
+}
+
+// ── History ────────────────────────────────────────────────────────────
+async function renderHistory(){
+  const s=await getDoc(doc(db,'months',monthKey(),'users',session.username));
+  const log=((s.data()||{}).log||[]).slice().reverse();
+  const hl=document.getElementById('hist-list');
+  hl.innerHTML='';
+  if(!log.length){ hl.innerHTML='<div class="lb-empty">Nenhum lançamento este mês.</div>'; return; }
+  log.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='hist-item'; div.style.animationDelay=`${i*.04}s`;
+    div.innerHTML=`
+      <div>
+        <div class="h-date">${item.date}${item.type==='admin'?' 👑':''}</div>
+        ${item.reason?`<div class="h-note">${item.reason}</div>`:''}
+      </div>
+      <div class="h-val ${(item.h>=0)?'positive':'negative'}">${item.h>=0?'+':''}${item.h}h</div>`;
+    hl.appendChild(div);
+  });
+}
+
+// ── Tabs ────────────────────────────────────────────────────────────────
+window.switchTab=(tab,btn)=>{
+  document.querySelectorAll('#screen-app .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-ranking').style.display=tab==='ranking'?'block':'none';
+  document.getElementById('tab-historico').style.display=tab==='historico'?'block':'none';
+  if(tab==='historico') renderHistory();
+};
+
+// ── Admin: carregar usuários ─────────────────────────────────────────────
+window.loadAdminUsers = async () => {
+  const mk=monthKey();
+  const [uSnap,mSnap]=await Promise.all([getDocs(collection(db,'users')),getDocs(collection(db,'months',mk,'users'))]);
+  const adminSet=new Set(); const allU={};
+  uSnap.forEach(d=>{ allU[d.id]=d.data(); if(d.data().isAdmin) adminSet.add(d.id); });
+  const mData={};
+  mSnap.forEach(d=>{ mData[d.id]=d.data(); });
+  const entries=Object.keys(allU).filter(u=>!adminSet.has(u))
+    .map(u=>({user:u,total:mData[u]?.total||0,log:mData[u]?.log||[]}))
+    .sort((a,b)=>b.total-a.total);
+  const list=document.getElementById('admin-user-list');
+  list.innerHTML='';
+  if(!entries.length){ list.innerHTML='<div class="lb-empty" style="padding:20px">Nenhum usuário ainda.</div>'; return; }
+  entries.forEach((e,i)=>{
+    const r=i+1, medal=r===1?'🥇':r===2?'🥈':r===3?'🥉':'#'+r;
+    const div=document.createElement('div'); div.className='admin-row';
+    div.innerHTML=`
+      <div>
+        <div class="admin-row-info">${medal} ${e.user}</div>
+        <div class="admin-row-sub">${fmtH(e.total)} este mês</div>
+      </div>
+      <div class="admin-actions">
+        <button class="btn-warning" onclick="openEdit('${e.user}',${e.total})">✏️ Editar</button>
+        <button class="btn-danger"  onclick="deleteUser('${e.user}')">🗑️</button>
+      </div>`;
+    list.appendChild(div);
+  });
+};
+
+window.switchAdminTab=(tab,btn)=>{
+  document.querySelectorAll('#screen-admin .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  ['usuarios','auditoria','config'].forEach(t=>{ document.getElementById(`admin-tab-${t}`).style.display=t===tab?'block':'none'; });
+  if(tab==='usuarios') loadAdminUsers();
+  if(tab==='auditoria') loadAuditLog();
+};
+
+// ── Admin: editar horas ──────────────────────────────────────────────────
+let editTarget=null;
+window.openEdit=(u,cur)=>{
+  editTarget={username:u,current:cur};
+  document.getElementById('modal-username').textContent=u;
+  document.getElementById('modal-current').textContent=fmtH(cur);
+  document.getElementById('modal-hours').value='';
+  document.getElementById('modal-reason').value='';
+  document.getElementById('modal-op').value='set';
+  document.getElementById('modal-edit').style.display='flex';
+};
+window.closeModal=()=>{ document.getElementById('modal-edit').style.display='none'; editTarget=null; };
+
+window.applyEdit = async () => {
+  if(!editTarget) return;
+  const h=parseFloat(document.getElementById('modal-hours').value);
+  const op=document.getElementById('modal-op').value;
+  const reason=document.getElementById('modal-reason').value.trim()||'Alteração manual';
+  if(!h||h<0){ toast('Valor inválido.','bad'); return; }
+
+  const mk=monthKey();
+  const ref=doc(db,'months',mk,'users',editTarget.username);
+  const s=await getDoc(ref);
+  const d=s.data()||{total:0,log:[]};
+
+  let newTotal, logH;
+  if(op==='set'){ newTotal=h; logH=h-d.total; }
+  else if(op==='add'){ newTotal=d.total+h; logH=h; }
+  else { newTotal=Math.max(0,d.total-h); logH=-h; }
+  newTotal=Math.round(newTotal*100)/100;
+
+  const today=new Date().toLocaleDateString('pt-BR');
+  await updateDoc(ref,{
+    total:newTotal,
+    log:[...(d.log||[]),{date:today,h:logH,type:'admin',reason,by:session.username}],
+    updatedAt:serverTimestamp()
+  });
+  await addDoc(collection(db,'audit'),{
+    by:session.username, target:editTarget.username,
+    op, before:d.total, after:newTotal, delta:logH,
+    reason, month:mk, at:serverTimestamp()
+  });
+  toast(`Horas de ${editTarget.username} atualizadas!`,'good');
+  closeModal(); loadAdminUsers();
+};
+
+// ── Admin: deletar usuário ───────────────────────────────────────────────
+window.deleteUser = async u => {
+  if(!confirm(`Remover "${u}" e todos os dados?`)) return;
+  await Promise.all([deleteDoc(doc(db,'users',u)), deleteDoc(doc(db,'months',monthKey(),'users',u))]);
+  toast(`${u} removido.`,'bad'); loadAdminUsers();
+};
+
+// ── Admin: reset geral ───────────────────────────────────────────────────
+window.confirmReset = async () => {
+  if(!confirm('Zerar TODAS as horas do mês? Irreversível.')) return;
+  const mk=monthKey();
+  const snap=await getDocs(collection(db,'months',mk,'users'));
+  await Promise.all(snap.docs.map(d=>updateDoc(d.ref,{total:0,log:[],updatedAt:serverTimestamp()})));
+  await addDoc(collection(db,'audit'),{by:session.username,target:'TODOS',op:'reset',reason:'Reset manual',month:mk,at:serverTimestamp()});
+  toast('Horas zeradas!','bad'); loadAdminUsers();
+};
+
+// ── Admin: trocar senha ──────────────────────────────────────────────────
+window.changeAdminPass = async () => {
+  const np=document.getElementById('inp-admin-newpass').value;
+  if(!np||np.length<4){ toast('Senha muito curta.','bad'); return; }
+  await updateDoc(doc(db,'users',session.username),{pass:np});
+  document.getElementById('inp-admin-newpass').value='';
+  toast('Senha alterada com sucesso!','good');
+};
+
+// ── Admin: log de auditoria ──────────────────────────────────────────────
+window.loadAuditLog = async () => {
+  const q=query(collection(db,'audit'),orderBy('at','desc'));
+  const snap=await getDocs(q);
+  const list=document.getElementById('audit-log-list');
+  list.innerHTML='';
+  if(snap.empty){ list.innerHTML='<div class="lb-empty">Nenhuma alteração registrada.</div>'; return; }
+  snap.forEach(d=>{
+    const a=d.data();
+    const when=a.at?.toDate?a.at.toDate().toLocaleString('pt-BR'):'—';
+    const opLabel=a.op==='set'?'Definiu total exato de':a.op==='add'?'Adicionou horas a':a.op==='sub'?'Removeu horas de':'Resetou horas de';
+    const div=document.createElement('div'); div.className='audit-item';
+    div.innerHTML=`
+      <div class="a-header">
+        <span class="a-who">👑 ${a.by}</span>
+        <span class="a-when">${when}</span>
+      </div>
+      <div>${opLabel} <strong>${a.target}</strong>${a.op!=='reset'?` · ${fmtH(a.before||0)} → ${fmtH(a.after||0)}`:''}
+      </div>
+      ${a.reason?`<div style="color:var(--muted);margin-top:4px;font-size:11px">Motivo: ${a.reason}</div>`:''}`;
+    list.appendChild(div);
+  });
+};
+
+// ── Utils ────────────────────────────────────────────────────────────────
+window.fErr=(id,show)=>{ const f=document.getElementById(id); if(show) f.classList.add('has-error'); else f.classList.remove('has-error'); };
+
+let toastT;
+window.toast=(msg,type='')=>{ const t=document.getElementById('toast'); t.textContent=msg; t.className='show '+(type||''); clearTimeout(toastT); toastT=setTimeout(()=>{ t.className=''; },3000); };
+
+document.getElementById('inp-pass').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('inp-add-hours').addEventListener('keydown',e=>{ if(e.key==='Enter') addHours(); });
+</script>
+</body>
+</html>
